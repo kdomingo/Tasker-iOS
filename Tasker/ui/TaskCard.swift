@@ -12,6 +12,8 @@ struct TaskCard: View {
     var taskDetails: Task? = nil
     var onCheckTapped: (Task) -> () = {_ in }
     
+    @State private var completed: Bool = false
+    
     var body: some View {
         VStack(alignment: .leading) {
             cardDetails
@@ -24,16 +26,23 @@ struct TaskCard: View {
     private var cardDetails: some View {
         
         @State var checked = taskDetails?.completed ?? false
+        @State var deadline: String = ""
         
         let textSpacer = Spacer().frame(height: 8)
         
         return HStack {
             VStack(alignment: .leading) {
-                Text(taskDetails?.title ?? "").font(.headline)
+                Text(taskDetails?.title ?? "")
+                    .font(.headline)
+                    .strikethrough(completed)
+                
                 textSpacer
-                Text(taskDetails?.taskDescription ?? "")
+                
+                Text(taskDetails?.taskDescription ?? "").strikethrough(completed)
+                
                 textSpacer
-                Text("\(taskDetails?.deadline ?? 0)")
+                
+                Text(deadline).strikethrough(completed)
             }
             Spacer()
             RoundedRectangle(cornerRadius: 5.0)
@@ -46,16 +55,23 @@ struct TaskCard: View {
                     }
                 }
                 .onTapGesture {
-                    if let toComplete = taskDetails {
-                        toComplete.realm?.writeAsync {
-                            toComplete.completed.toggle()
-                            onCheckTapped(toComplete)
-                        }
+                    guard let thawedTask = taskDetails?.thaw() else { return }
+                    thawedTask.realm?.writeAsync {
+                        thawedTask.completed.toggle()
+                        completed = thawedTask.completed
+                        onCheckTapped(thawedTask)
                     }
                 }
         }
         .frame(maxWidth: .infinity, maxHeight: 80)
         .padding(16.0)
+        .onAppear {
+            completed = taskDetails?.completed ??  false
+            
+            if let currentDeadline = taskDetails?.deadline {
+                deadline = Date(timeIntervalSince1970: TimeInterval(currentDeadline)).formatted()
+            }
+        }
     }
 }
 

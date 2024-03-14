@@ -15,6 +15,10 @@ struct TasksScreen: View {
     @State var dialogActive: Bool = false
     @State var currentTask: Task? = nil
     
+    @ObservedResults(
+        Task.self
+    ) private var tasks
+    
     var body: some View {
         ZStack {
             TasksScreenContent(addAction: {
@@ -26,7 +30,7 @@ struct TasksScreen: View {
                 dialogActive = true
             }, completeAction: { task in
                 taskViewModel.save(task: task)
-            },tasks: taskViewModel.tasks)
+            }, tasks: tasks)
             
             if dialogActive {
                 TaskDialog(task: $currentTask, active: $dialogActive) { task in
@@ -36,7 +40,6 @@ struct TasksScreen: View {
                 } onNegativeAction: { task in
                     taskViewModel.delete(task: task)
                 }
-                
             }
         }
     }

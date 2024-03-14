@@ -10,7 +10,6 @@ import RealmSwift
 
 protocol TaskDatasource {
     func save(task: Task)
-    func update(task: Task)
     func getAll(ascending: Bool) -> Results<Task>
     func delete(task: Task)
 }
@@ -25,12 +24,6 @@ class TaskDatasourceImpl: TaskDatasource, ObservableObject {
         }
     }
     
-    func update(task: Task) {
-        self.realm.writeAsync {
-            self.realm.add(task, update: .modified)
-        }
-    }
-    
     func getAll(ascending: Bool = false) -> Results<Task> {
         return self.realm.objects(Task.self).sorted(by: \Task.deadline, ascending: ascending)
     }
@@ -42,8 +35,10 @@ class TaskDatasourceImpl: TaskDatasource, ObservableObject {
     }
     
     func delete(task: Task) {
-        self.realm.writeAsync {
-            self.realm.delete(task)
+        guard let thawedTask = task.thaw() else { return }
+        let taskRealm = thawedTask.realm
+        taskRealm?.writeAsync {
+            taskRealm?.delete(thawedTask)
         }
     }
 }

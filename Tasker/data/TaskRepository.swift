@@ -10,7 +10,6 @@ import RealmSwift
 
 protocol TaskRepository {
     func save(task: Task)
-    func update(task: Task)
     func getAll(ascending: Bool) -> Results<Task>
     func delete(task: Task)
 }
@@ -25,10 +24,6 @@ class TaskRepositoryImpl: TaskRepository, ObservableObject {
     
     func save(task: Task) {
         self.taskDatasource.save(task: task)
-    }
-    
-    func update(task: Task) {
-        taskDatasource.update(task: task)
     }
     
     func getAll(ascending: Bool) -> Results<Task> {

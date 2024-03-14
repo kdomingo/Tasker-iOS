@@ -18,6 +18,7 @@ struct TaskDialog: View {
     var onAuxAction: (Task) -> () = {_ in }
     var onPositiveAction: (Task) -> () = {_ in }
     var onNegativeAction: (Task) -> () = {_ in }
+    var onDeadlineAction: () -> () = {}
     
     @State private var title: String = ""
     @State private var details: String = ""
@@ -30,8 +31,13 @@ struct TaskDialog: View {
     @State private var titleIsError: Bool = false
     
     
+    @State private var showDatepicker: Bool = false
+    @State private var deadlineDate: Date = Date()
+    
+    
     var body: some View {
         ZStack {
+            
             Color(.black)
                 .opacity(0.1)
                 .onTapGesture {
@@ -53,7 +59,8 @@ struct TaskDialog: View {
                 Spacer().frame(height: 16)
                 
                 HStack {
-                    TextField("Task title", text: $title).disabled(isViewing && !isEditing)
+                    TextField("Task title", text: $title)
+                        .disabled(isViewing && !isEditing)
                         .onReceive(Just(title)) {_ in
                             titleIsError = false
                         }
@@ -67,9 +74,11 @@ struct TaskDialog: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 
                 HStack {
-                    TextField("Task deadline", text: $deadline).disabled(isViewing && !isEditing)
+                    TextField("Task deadline", text: $deadline)
+                        .disabled(isViewing && !isEditing)
                     Button {
-                        
+                        showDatepicker = true
+                        onDeadlineAction()
                     } label: {
                         Image(systemName: "calendar")
                     }
@@ -93,7 +102,6 @@ struct TaskDialog: View {
                         Text("Task Description")
                             .opacity(0.2)
                     }
-                    
                 }
                 .padding()
                 .background()
@@ -108,15 +116,17 @@ struct TaskDialog: View {
                 if !isEditing {
                     Button {
                         if let currentTask = task {
-                            currentTask.realm?.writeAsync {
-                                currentTask.completed = true
+                            guard let thawedTask = currentTask.thaw() else { return }
+                            thawedTask.realm?.writeAsync {
+                                thawedTask.completed = true
+                                onAuxAction(thawedTask)
                                 close()
                             }
                         } else {
                             if !title.isEmpty {
                                 let newTask = Task(title: self.title,
                                                    taskDescription: self.details,
-                                                   deadline: -1,
+                                                   deadline: deadlineDate.timeIntervalSince1970,
                                                    completed: false)
                                 onAuxAction(newTask)
                                 close()
@@ -149,8 +159,14 @@ struct TaskDialog: View {
                                 }
                                 
                                 if let currentTask = task {
-                                    onPositiveAction(currentTask)
-                                    close()
+                                    guard let thawedTask = currentTask.thaw() else { return }
+                                    thawedTask.realm?.writeAsync {
+                                        thawedTask.title = $title.wrappedValue
+                                        thawedTask.taskDescription = $details.wrappedValue
+                                        thawedTask.deadline = deadlineDate.timeIntervalSince1970
+                                        onPositiveAction(thawedTask)
+                                        close()
+                                    }
                                 }
                             }
                         } label: {
@@ -159,6 +175,7 @@ struct TaskDialog: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(completed)
                         
                         Button {
                             if nil != self.task {
@@ -184,10 +201,26 @@ struct TaskDialog: View {
                 title = $task.wrappedValue?.title ?? ""
                 details = $task.wrappedValue?.taskDescription ?? ""
                 completed = $task.wrappedValue?.completed ?? false
+                if let currentDeadline = $task.wrappedValue?.deadline {
+                    deadline = Date(timeIntervalSince1970: TimeInterval(currentDeadline)).formatted(date: .abbreviated, time: .omitted)
+                }
                 isViewing = nil != task
                 offset = 0
             }
             .padding(32)
+            
+            if showDatepicker {
+                VStack {
+                    DatePicker("Select Deadline", selection: $deadlineDate, displayedComponents: [.date])
+                        .datePickerStyle(.graphical)
+                        .onChange(of: deadlineDate) { oldValue, newValue in
+                            deadline = newValue.formatted(date: .abbreviated, time: .omitted)
+                            showDatepicker = false
+                        }
+                }
+                .background()
+                .padding(16)
+            }
         }
         .ignoresSafeArea()
     }

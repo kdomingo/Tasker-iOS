@@ -10,7 +10,6 @@ import RealmSwift
 
 protocol TaskServiceDelegate {
     func save(task: Task)
-    func update(task: Task)
     func getAll(ascending: Bool) -> Results<Task>
     func delete(task: Task)
 }
@@ -25,10 +24,6 @@ class TaskService: TaskServiceDelegate, ObservableObject {
     
     func save(task: Task) {
         taskRepository.save(task: task)
-    }
-    
-    func update(task: Task) {
-        taskRepository.update(task: task)
     }
     
     func getAll(ascending: Bool = false) -> Results<Task> {
