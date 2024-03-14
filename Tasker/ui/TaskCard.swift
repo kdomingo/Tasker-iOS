@@ -69,7 +69,7 @@ struct TaskCard: View {
             completed = taskDetails?.completed ??  false
             
             if let currentDeadline = $taskDetails.wrappedValue?.deadline {
-                deadline = Date(timeIntervalSince1970: TimeInterval(currentDeadline)).formatted()
+                deadline = Date(timeIntervalSinceReferenceDate: currentDeadline).formatted()
             }
         }
     }
