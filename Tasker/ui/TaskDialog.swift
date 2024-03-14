@@ -53,8 +53,8 @@ struct TaskDialog: View {
                 Spacer().frame(height: 16)
                 
                 HStack {
-                    TextField("Task title", text: $title)
-                        .onReceive(Just(title)) {_ in 
+                    TextField("Task title", text: $title).disabled(isViewing && !isEditing)
+                        .onReceive(Just(title)) {_ in
                             titleIsError = false
                         }
                 }
@@ -62,12 +62,12 @@ struct TaskDialog: View {
                 .background()
                 .overlay {
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(titleIsError ? .red : .black.opacity(0.6), lineWidth: 1)
+                        .stroke(titleIsError ? .red : .black.opacity(0.6), lineWidth: titleIsError ? 2 : 1)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 
                 HStack {
-                    TextField("Task deadline", text: $deadline)
+                    TextField("Task deadline", text: $deadline).disabled(isViewing && !isEditing)
                     Button {
                         
                     } label: {
@@ -87,6 +87,7 @@ struct TaskDialog: View {
                     
                     TextEditor(text: $details)
                         .frame(maxHeight: 100).background(.clear)
+                        .disabled(isViewing && !isEditing)
                     
                     if (details.isEmpty) {
                         Text("Task Description")
@@ -109,16 +110,20 @@ struct TaskDialog: View {
                         if let currentTask = task {
                             currentTask.realm?.writeAsync {
                                 currentTask.completed = true
-                                onAuxAction(currentTask)
+                                close()
                             }
                         } else {
-                            let newTask = Task(title: self.title,
-                                               taskDescription: self.details,
-                                               deadline: -1,
-                                               completed: false)
-                            onAuxAction(newTask)
+                            if !title.isEmpty {
+                                let newTask = Task(title: self.title,
+                                                   taskDescription: self.details,
+                                                   deadline: -1,
+                                                   completed: false)
+                                onAuxAction(newTask)
+                                close()
+                            } else {
+                                titleIsError = true
+                            }
                         }
-                        close()
                         
                     } label: {
                         Text(nil == task ? "Save" : "Complete task")
@@ -126,6 +131,7 @@ struct TaskDialog: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .disabled(completed)
                 }
                 
                 if (nil != task) {
