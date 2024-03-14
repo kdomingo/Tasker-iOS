@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct TaskerApp: App {
+    
+    private let taskService = TaskService(taskRepository: TaskRepositoryImpl(taskDatasource: TaskDatasourceImpl()))
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TasksScreen()
+                .environmentObject(TasksViewModel(taskService: taskService))
         }
     }
 }

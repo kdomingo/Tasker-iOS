@@ -1,0 +1,6 @@
+framework module Pods_Tasker_TaskerUITests {
+  umbrella header "Pods-Tasker-TaskerUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
