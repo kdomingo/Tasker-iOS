@@ -60,7 +60,7 @@ private struct TasksScreenContent: View {
             ZStack(alignment: .bottomTrailing) {
                 List {
                     ForEach(tasks, id: \.id) { task in
-                        TaskCard(taskDetails: .constant(task),
+                        TaskCard(taskDetails: task,
                                  onCheckTapped: { task in
                             completeAction(task)
                         })
@@ -73,6 +73,21 @@ private struct TasksScreenContent: View {
                     }
                 }
                 .navigationBarTitle("Tasks", displayMode: .inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HStack {
+                            Button {
+                                
+                            } label: {
+                            }
+                            
+                            Button {
+                                
+                            } label: {
+                            }
+                        }
+                    }
+                }
                 
                 Button {
                     self.addAction()

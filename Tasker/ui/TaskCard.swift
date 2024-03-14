@@ -9,10 +9,13 @@ import SwiftUI
 
 struct TaskCard: View {
     
-    @Binding var taskDetails: Task?
+    var taskDetails: Task?
     var onCheckTapped: (Task) -> () = {_ in }
     
     @State private var completed: Bool = false
+    @State var checked: Bool = false
+    @State var deadline: String = ""
+    
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -21,12 +24,16 @@ struct TaskCard: View {
         .frame(maxWidth: .infinity, maxHeight: 100)
         .background(Color.gray.opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 8.0))
+        .onAppear {
+            completed = taskDetails?.completed ??  false
+            
+            if let currentDeadline = taskDetails?.deadline {
+                deadline = Date(timeIntervalSince1970: currentDeadline).formatted(date: .abbreviated, time: .omitted)
+            }
+        }
     }
     
     private var cardDetails: some View {
-        
-        @State var checked = taskDetails?.completed ?? false
-        @State var deadline: String = ""
         
         let textSpacer = Spacer().frame(height: 8)
         
@@ -65,18 +72,11 @@ struct TaskCard: View {
         }
         .frame(maxWidth: .infinity, maxHeight: 80)
         .padding(16.0)
-        .onAppear {
-            completed = taskDetails?.completed ??  false
-            
-            if let currentDeadline = $taskDetails.wrappedValue?.deadline {
-                deadline = Date(timeIntervalSinceReferenceDate: currentDeadline).formatted()
-            }
-        }
     }
 }
 
 #Preview {
-    TaskCard(taskDetails: .constant(Task(
+    TaskCard(taskDetails: Task(
         title: "A task this is", taskDescription: "Yes, a task", deadline: 12345
-    )))
+    ))
 }
