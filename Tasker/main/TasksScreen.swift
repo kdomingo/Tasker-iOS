@@ -60,7 +60,7 @@ private struct TasksScreenContent: View {
             ZStack(alignment: .bottomTrailing) {
                 List {
                     ForEach(tasks, id: \.id) { task in
-                        TaskCard(taskDetails: task,
+                        TaskCard(taskDetails: .constant(task),
                                  onCheckTapped: { task in
                             completeAction(task)
                         })

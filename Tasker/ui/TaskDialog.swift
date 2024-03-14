@@ -83,6 +83,7 @@ struct TaskDialog: View {
                         Image(systemName: "calendar")
                     }
                     .tint(.black)
+                    .disabled(completed || !isEditing)
                 }
                 .padding()
                 .background()

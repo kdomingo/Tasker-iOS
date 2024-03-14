@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TaskCard: View {
     
-    var taskDetails: Task? = nil
+    @Binding var taskDetails: Task?
     var onCheckTapped: (Task) -> () = {_ in }
     
     @State private var completed: Bool = false
@@ -68,7 +68,7 @@ struct TaskCard: View {
         .onAppear {
             completed = taskDetails?.completed ??  false
             
-            if let currentDeadline = taskDetails?.deadline {
+            if let currentDeadline = $taskDetails.wrappedValue?.deadline {
                 deadline = Date(timeIntervalSince1970: TimeInterval(currentDeadline)).formatted()
             }
         }
@@ -76,7 +76,7 @@ struct TaskCard: View {
 }
 
 #Preview {
-    TaskCard(taskDetails: Task(
+    TaskCard(taskDetails: .constant(Task(
         title: "A task this is", taskDescription: "Yes, a task", deadline: 12345
-    ))
+    )))
 }
